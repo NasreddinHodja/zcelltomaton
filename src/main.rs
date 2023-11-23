@@ -91,7 +91,6 @@ fn event(app: &App, model: &mut Model, event: Event) {
             id: _,
             simple: Some(event),
         } => match event {
-            // TODO: fn handle_mousepress()
             MousePressed(MouseButton::Left) => {
                 handle_mousepress(MouseButton::Left, &app, model);
             }
