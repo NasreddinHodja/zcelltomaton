@@ -1,4 +1,5 @@
 use nannou::prelude::*;
+use nannou::winit::event::MouseButton;
 
 const WINDOW_HEIGHT: u32 = 800;
 const WINDOW_WIDTH: u32 = 800;
@@ -65,6 +66,25 @@ fn model(app: &App) -> Model {
 
 fn update(_app: &App, _model: &mut Model, _update: Update) {}
 
+fn handle_mousepress(button: MouseButton, app: &App, model: &mut Model) {
+    let win = app.window_rect();
+    let cell_w = win.w() / BOARD_COLS as f32;
+    let cell_h = win.h() / BOARD_ROWS as f32;
+    let window_w = app.window_rect().w();
+    let window_h = app.window_rect().h();
+    let pos = app.mouse.position();
+    let pos = model
+        .board
+        .position_to_rc(pos.x, pos.y, cell_h, cell_w, window_w, window_h);
+    let mut state = 0;
+    match button {
+        MouseButton::Left => state = 1,
+        MouseButton::Right => state = 0,
+        _ => {}
+    }
+    model.board.set_cell(pos.x as usize, pos.y as usize, state);
+}
+
 fn event(app: &App, model: &mut Model, event: Event) {
     match event {
         Event::WindowEvent {
@@ -73,28 +93,10 @@ fn event(app: &App, model: &mut Model, event: Event) {
         } => match event {
             // TODO: fn handle_mousepress()
             MousePressed(MouseButton::Left) => {
-                let win = app.window_rect();
-                let cell_w = win.w() / BOARD_COLS as f32;
-                let cell_h = win.h() / BOARD_ROWS as f32;
-                let window_w = app.window_rect().w();
-                let window_h = app.window_rect().h();
-                let pos = app.mouse.position();
-                let pos = model
-                    .board
-                    .position_to_rc(pos.x, pos.y, cell_h, cell_w, window_w, window_h);
-                model.board.set_cell(pos.x as usize, pos.y as usize, 1);
+                handle_mousepress(MouseButton::Left, &app, model);
             }
             MousePressed(MouseButton::Right) => {
-                let win = app.window_rect();
-                let cell_w = win.w() / BOARD_COLS as f32;
-                let cell_h = win.h() / BOARD_ROWS as f32;
-                let window_w = app.window_rect().w();
-                let window_h = app.window_rect().h();
-                let pos = app.mouse.position();
-                let pos = model
-                    .board
-                    .position_to_rc(pos.x, pos.y, cell_h, cell_w, window_w, window_h);
-                model.board.set_cell(pos.x as usize, pos.y as usize, 0);
+                handle_mousepress(MouseButton::Right, &app, model);
             }
             _ => {}
         },
@@ -117,14 +119,8 @@ fn view(app: &App, model: &Model, frame: Frame) {
 
     for r in 0..BOARD_ROWS {
         for c in 0..BOARD_COLS {
-            // for r in 0..2 {
-            //     for c in 0..2 {
             let x = -(win.w() / 2.0) + cell_w * c as f32 + cell_w / 2.0;
             let y = win.h() / 2.0 - cell_h * r as f32 - cell_h / 2.0;
-            // draw.rect()
-            //     .x_y(x, y)
-            //     .w_h(cell_w, cell_h)
-            //     .color(STATE_COLORS[1]);
             draw.rect()
                 .x_y(x, y)
                 .w_h(cell_w, cell_h)
