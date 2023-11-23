@@ -97,7 +97,7 @@ impl Automaton {
                 },
                 State {
                     color: ORANGE,
-                    default: 0,
+                    default: 2,
                     transitions: HashMap::new(),
                 },
                 State {

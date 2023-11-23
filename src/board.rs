@@ -47,7 +47,6 @@ impl<const R: usize, const C: usize> Board<R, C> {
                 }
                 let r = module(r0 as i32 + dr, R as i32) as usize;
                 let c = module(c0 as i32 + dc, C as i32) as usize;
-                println!("{r} {c}");
                 nbors[self.get_cell(r, c)] += 1;
             }
         }

@@ -9,8 +9,8 @@ use board::Board;
 
 const WINDOW_HEIGHT: u32 = 800;
 const WINDOW_WIDTH: u32 = 800;
-const BOARD_ROWS: usize = 32;
-const BOARD_COLS: usize = 32;
+const BOARD_ROWS: usize = 64;
+const BOARD_COLS: usize = 64;
 
 const STATE_COLORS: [Srgb<u8>; 2] = [BLACK, PLUM];
 
@@ -18,6 +18,7 @@ struct Model {
     board: Board<BOARD_ROWS, BOARD_COLS>,
     next_board: Board<BOARD_ROWS, BOARD_COLS>,
     automaton: Automaton,
+    playing: bool,
 }
 
 fn model(app: &App) -> Model {
@@ -29,16 +30,22 @@ fn model(app: &App) -> Model {
 
     let board: Board<BOARD_ROWS, BOARD_COLS> = Board::new();
     let next_board: Board<BOARD_ROWS, BOARD_COLS> = Board::new();
-    let automaton = Automaton::seeds();
+    let automaton = Automaton::bb();
+    let playing = false;
 
     Model {
         board,
         next_board,
         automaton,
+        playing,
     }
 }
 
-fn update(_app: &App, _model: &mut Model, _update: Update) {}
+fn update(_app: &App, model: &mut Model, _update: Update) {
+    if model.playing {
+        step(model)
+    }
+}
 
 fn handle_mousepress(button: MouseButton, app: &App, model: &mut Model) {
     let win = app.window_rect();
@@ -59,6 +66,13 @@ fn handle_mousepress(button: MouseButton, app: &App, model: &mut Model) {
     model.board.set_cell(pos.x as usize, pos.y as usize, state);
 }
 
+fn step(model: &mut Model) {
+    model
+        .board
+        .compute_next(&model.automaton, &mut model.next_board);
+    (model.board, model.next_board) = (model.next_board.clone(), model.board.clone())
+}
+
 fn event(app: &App, model: &mut Model, event: Event) {
     match event {
         Event::WindowEvent {
@@ -71,11 +85,9 @@ fn event(app: &App, model: &mut Model, event: Event) {
             MousePressed(MouseButton::Right) => {
                 handle_mousepress(MouseButton::Right, &app, model);
             }
-            KeyPressed(Key::Space) => {
-                model
-                    .board
-                    .compute_next(&model.automaton, &mut model.next_board);
-                (model.board, model.next_board) = (model.next_board.clone(), model.board.clone())
+            KeyPressed(Key::Space) => step(model),
+            KeyPressed(Key::P) => {
+                model.playing = !model.playing;
             }
             _ => {}
         },
@@ -100,10 +112,12 @@ fn view(app: &App, model: &Model, frame: Frame) {
         for c in 0..BOARD_COLS {
             let x = -(win.w() / 2.0) + cell_w * c as f32 + cell_w / 2.0;
             let y = win.h() / 2.0 - cell_h * r as f32 - cell_h / 2.0;
-            draw.rect()
-                .x_y(x, y)
-                .w_h(cell_w, cell_h)
-                .color(STATE_COLORS[model.board.get_cell(r, c)]);
+            let cell = model.board.get_cell(r, c);
+            let state = match model.automaton.get_state(cell) {
+                Some(cell) => cell,
+                None => panic!("No state found for cell {cell}"),
+            };
+            draw.rect().x_y(x, y).w_h(cell_w, cell_h).color(state.color);
         }
     }
 
