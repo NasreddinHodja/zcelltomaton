@@ -9,13 +9,15 @@ use board::Board;
 
 const WINDOW_HEIGHT: u32 = 800;
 const WINDOW_WIDTH: u32 = 800;
-const BOARD_ROWS: usize = 5;
-const BOARD_COLS: usize = 5;
+const BOARD_ROWS: usize = 32;
+const BOARD_COLS: usize = 32;
 
 const STATE_COLORS: [Srgb<u8>; 2] = [BLACK, PLUM];
 
 struct Model {
     board: Board<BOARD_ROWS, BOARD_COLS>,
+    next_board: Board<BOARD_ROWS, BOARD_COLS>,
+    automaton: Automaton,
 }
 
 fn model(app: &App) -> Model {
@@ -26,8 +28,14 @@ fn model(app: &App) -> Model {
         .unwrap();
 
     let board: Board<BOARD_ROWS, BOARD_COLS> = Board::new();
+    let next_board: Board<BOARD_ROWS, BOARD_COLS> = Board::new();
+    let automaton = Automaton::seeds();
 
-    Model { board }
+    Model {
+        board,
+        next_board,
+        automaton,
+    }
 }
 
 fn update(_app: &App, _model: &mut Model, _update: Update) {}
@@ -62,6 +70,12 @@ fn event(app: &App, model: &mut Model, event: Event) {
             }
             MousePressed(MouseButton::Right) => {
                 handle_mousepress(MouseButton::Right, &app, model);
+            }
+            KeyPressed(Key::Space) => {
+                model
+                    .board
+                    .compute_next(&model.automaton, &mut model.next_board);
+                (model.board, model.next_board) = (model.next_board.clone(), model.board.clone())
             }
             _ => {}
         },

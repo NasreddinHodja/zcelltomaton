@@ -3,9 +3,18 @@ use nannou::prelude::{BLACK, ORANGE, PLUM};
 use std::collections::HashMap;
 
 pub struct State {
-    color: Srgb<u8>,
-    default: i32,
-    transitions: HashMap<String, i32>,
+    pub color: Srgb<u8>,
+    default: usize,
+    transitions: HashMap<String, usize>,
+}
+
+impl State {
+    pub fn next_state(&self, transition: &str) -> usize {
+        match self.transitions.get(transition) {
+            Some(state) => *state,
+            None => self.default,
+        }
+    }
 }
 
 pub struct Automaton {
@@ -13,6 +22,14 @@ pub struct Automaton {
 }
 
 impl Automaton {
+    pub fn len(&self) -> usize {
+        self.states.len()
+    }
+
+    pub fn get_state(&self, state: usize) -> Option<&State> {
+        self.states.get(state)
+    }
+
     pub fn game_of_life() -> Automaton {
         Automaton {
             states: vec![
@@ -54,10 +71,7 @@ impl Automaton {
                 State {
                     color: PLUM,
                     default: 0,
-                    transitions: {
-                        let mut map = HashMap::new();
-                        map
-                    },
+                    transitions: HashMap::new(),
                 },
             ],
         }
@@ -84,18 +98,12 @@ impl Automaton {
                 State {
                     color: ORANGE,
                     default: 0,
-                    transitions: {
-                        let mut map = HashMap::new();
-                        map
-                    },
+                    transitions: HashMap::new(),
                 },
                 State {
                     color: PLUM,
                     default: 0,
-                    transitions: {
-                        let mut map = HashMap::new();
-                        map
-                    },
+                    transitions: HashMap::new(),
                 },
             ],
         }
