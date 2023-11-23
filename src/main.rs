@@ -1,67 +1,33 @@
 use nannou::prelude::*;
 use nannou::winit::event::MouseButton;
 
+mod automaton;
+use automaton::Automaton;
+
+mod board;
+use board::Board;
+
 const WINDOW_HEIGHT: u32 = 800;
 const WINDOW_WIDTH: u32 = 800;
 const BOARD_ROWS: usize = 5;
 const BOARD_COLS: usize = 5;
 
-type State = usize;
-struct Board {
-    cells: Vec<Vec<State>>,
-    rows: usize,
-    cols: usize,
-}
-
-impl Board {
-    fn new(rows: usize, cols: usize) -> Board {
-        Board {
-            cells: vec![vec![0; cols]; rows],
-            rows,
-            cols,
-        }
-    }
-
-    fn position_to_rc(
-        &self,
-        x: f32,
-        y: f32,
-        cell_w: f32,
-        cell_h: f32,
-        window_w: f32,
-        window_h: f32,
-    ) -> Vec2 {
-        // let r = (window_h / 2.0 - y) / self.rows as f32;
-        // let c = (x + window_w / 2.0) / self.cols as f32;
-        let r = ((-y + window_h / 2.0) / cell_h).floor();
-        let c = ((x + window_w / 2.0) / cell_w).floor();
-
-        Vec2::new(r, c)
-    }
-
-    fn set_cell(&mut self, r: usize, c: usize, state: State) {
-        self.cells[r][c] = state
-    }
-}
-
 const STATE_COLORS: [Srgb<u8>; 2] = [BLACK, PLUM];
 
 struct Model {
-    board: Board,
-    window_id: WindowId,
+    board: Board<BOARD_ROWS, BOARD_COLS>,
 }
 
 fn model(app: &App) -> Model {
-    let window_id = app
-        .new_window()
+    app.new_window()
         .size_pixels(WINDOW_WIDTH, WINDOW_HEIGHT)
         .view(view)
         .build()
         .unwrap();
 
-    let board = Board::new(BOARD_ROWS, BOARD_COLS);
+    let board: Board<BOARD_ROWS, BOARD_COLS> = Board::new();
 
-    Model { board, window_id }
+    Model { board }
 }
 
 fn update(_app: &App, _model: &mut Model, _update: Update) {}
@@ -123,7 +89,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
             draw.rect()
                 .x_y(x, y)
                 .w_h(cell_w, cell_h)
-                .color(STATE_COLORS[model.board.cells[r][c]]);
+                .color(STATE_COLORS[model.board.get_cell(r, c)]);
         }
     }
 
