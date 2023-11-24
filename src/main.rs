@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use nannou::prelude::*;
 use nannou::winit::event::MouseButton;
 
@@ -27,6 +29,8 @@ fn model(app: &App) -> Model {
         .view(view)
         .build()
         .unwrap();
+
+    app.set_loop_mode(LoopMode::rate_fps(2.0));
 
     let board: Board<BOARD_ROWS, BOARD_COLS> = Board::new();
     let next_board: Board<BOARD_ROWS, BOARD_COLS> = Board::new();
@@ -70,7 +74,7 @@ fn step(model: &mut Model) {
     model
         .board
         .compute_next(&model.automaton, &mut model.next_board);
-    (model.board, model.next_board) = (model.next_board.clone(), model.board.clone())
+    (model.board, model.next_board) = (model.next_board.clone(), model.board.clone());
 }
 
 fn event(app: &App, model: &mut Model, event: Event) {
